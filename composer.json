@@ -16,7 +16,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Rakibmiah99\\AgamirsomoySharedCache\\AgamirsomoySharedCacheServiceProvider"
+        "Rakibmiah99\\AgamirsomoySharedCache\\SharedCacheServiceProvider"
       ]
     }
   },
