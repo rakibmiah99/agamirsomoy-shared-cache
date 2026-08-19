@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Rakib\SharedCache;
+namespace Rakibmiah99\AgamirsomoySharedCache;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;

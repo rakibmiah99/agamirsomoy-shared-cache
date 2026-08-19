@@ -1,5 +1,5 @@
 {
-  "name": "rakib/agamirsomoy-shared-cache",
+  "name": "rakibmiah99/agamirsomoy-shared-cache",
   "description": "Shared cache utilities for Laravel applications",
   "type": "library",
   "license": "MIT",
@@ -10,13 +10,13 @@
   },
   "autoload": {
     "psr-4": {
-      "Rakib\\SharedCache\\": "src/"
+      "Rakibmiah99\\AgamirsomoySharedCache\\": "src/"
     }
   },
   "extra": {
     "laravel": {
       "providers": [
-        "Rakib\\SharedCache\\SharedCacheServiceProvider"
+        "Rakibmiah99\\AgamirsomoySharedCache\\AgamirsomoySharedCacheServiceProvider"
       ]
     }
   },
