@@ -3,7 +3,6 @@
   "description": "Shared Redis cache + dependency-based invalidation utilities for the Agamirsomoy news platform Laravel applications",
   "type": "library",
   "license": "MIT",
-  "version": "2.0.0",
   "require": {
     "php": "^8.2",
     "illuminate/cache": "^11.0|^12.0",
