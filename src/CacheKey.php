@@ -35,6 +35,35 @@ final class CacheKey
         return Carbon::now(self::timezone())->format('Y-m-d');
     }
 
+    /**
+     * Canonical, deterministic key builder. Every named helper below is a thin
+     * wrapper around this so all cache keys share one normalization strategy:
+     * params are sorted by name (order-independent), null/empty values are
+     * dropped, and string values are slugified. Two calls with the same
+     * logical params — regardless of argument/query-string order — always
+     * resolve to the same key.
+     *
+     * @param  array<string, scalar|null>  $params
+     */
+    public static function make(string $name, array $params = []): string
+    {
+        ksort($params);
+
+        $segments = [];
+        foreach ($params as $paramName => $value) {
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            $normalized = is_string($value) ? Str::slug($value) : $value;
+            $segments[] = $paramName . '=' . $normalized;
+        }
+
+        $suffix = $segments === [] ? '' : ':' . implode(':', $segments);
+
+        return self::base() . ':' . $name . $suffix;
+    }
+
     public static function header(): string
     {
         return self::base() . ':header:all';
@@ -57,8 +86,7 @@ final class CacheKey
 
     public static function headerTag(string $tagSlug): string
     {
-        return
-            self::base() . ':header:tag:' . Str::slug($tagSlug);
+        return self::make('header:tag', ['slug' => $tagSlug]);
     }
 
     public static function divisions(): string
@@ -66,83 +94,94 @@ final class CacheKey
         return self::base() . ':geo-location:divisions';
     }
 
-    public static function districts($divisionSlug): string
+    public static function districts(string $divisionSlug): string
     {
-        return self::base() . ':geo-location:districts:'.$divisionSlug;
+        return self::make('geo-location:districts', ['division' => $divisionSlug]);
     }
 
-    public static function upazilas($districtSlug): string
+    public static function upazilas(string $districtSlug): string
     {
-        return self::base() . ':geo-location:upazilas:'.$districtSlug;
+        return self::make('geo-location:upazilas', ['district' => $districtSlug]);
     }
 
-    public static function homeSectionWiseNews($sectionName): string
+    public static function homeSectionWiseNews(string $sectionName): string
     {
-        return self::base() . ':home-section-wise-news:'.$sectionName;
+        return self::make('home-section-wise-news', ['section' => $sectionName]);
     }
 
     public static function siteLatestNews(?string $date = null): string
     {
-        $date ??= self::today();
-
-        return self::base() . ':site-latest-news:' . $date;
+        return self::make('site-latest-news', ['date' => $date ?? self::today()]);
     }
 
     public static function siteMostReadNews(?string $readDate = null): string
     {
-        $readDate ??= self::today();
-
-        return self::base() . ':site-most-read-news:' . $readDate;
+        return self::make('site-most-read-news', ['date' => $readDate ?? self::today()]);
     }
 
     public static function mostReadNewsByCategory(int $categoryId, int $limit = 15): string
     {
-        return self::base() . ':most-read-by-category:' . $categoryId . ':' . $limit;
+        return self::make('most-read-by-category', ['category' => $categoryId, 'limit' => $limit]);
     }
 
-    public static function newsDetails($slug_key): string
+    public static function newsDetails(string $slugKey): string
     {
-        return self::base() . ':news-details:'.$slug_key;
+        return self::make('news-details', ['slug' => $slugKey]);
     }
 
-    public static function newsByCategoryHome($slug): string
+    public static function newsByCategoryHome(string $slug): string
     {
-        return self::base() . ':news-by-category-home:'.$slug;
+        return self::make('news-by-category-home', ['slug' => $slug]);
     }
 
-    public static function newsByCategory(string $slug, ?string $division = null, ?string $district = null, ?string $upazila = null, $date = null): string
-    {
-        $key = self::base() . ':news-by-category:' . $slug;
-        if ($division !== null && $division !== '') {
-            $key .= ':div:' . Str::slug($division);
-        }
-        if ($district !== null && $district !== '') {
-            $key .= ':dist:' . Str::slug($district);
-        }
-        if ($upazila !== null && $upazila !== '') {
-            $key .= ':upa:' . Str::slug($upazila);
-        }
-        if ($date !== null && $date !== '') {
-            $key .= ':date:' . Str::slug($date);
-        }
-
-        return $key;
+    public static function newsByCategory(
+        string $slug,
+        ?string $division = null,
+        ?string $district = null,
+        ?string $upazila = null,
+        mixed $date = null,
+        ?int $page = null,
+    ): string {
+        return self::make('news-by-category', [
+            'slug' => $slug,
+            'div' => $division,
+            'dist' => $district,
+            'upa' => $upazila,
+            'date' => $date,
+            'page' => $page,
+        ]);
     }
 
     public static function newsByPrintCategory(string $slug, ?string $date = null): string
     {
-        $key = self::base() . ':news-by-print-category:' . $slug;
-        if ($date !== null && $date !== '') {
-            $key .= ':date:' . Str::slug($date);
-        }
+        return self::make('news-by-print-category', ['slug' => $slug, 'date' => $date]);
+    }
 
-        return $key;
+    public static function newsByTag(string $tagSlug, ?int $page = null): string
+    {
+        return self::make('news-by-tag', ['slug' => $tagSlug, 'page' => $page]);
+    }
+
+    public static function newsByAuthor(int $authorId, ?int $page = null): string
+    {
+        return self::make('news-by-author', ['author' => $authorId, 'page' => $page]);
+    }
+
+    public static function relatedNews(int $newsId): string
+    {
+        return self::make('related-news', ['news' => $newsId]);
+    }
+
+    public static function newsTimeline(int $newsId): string
+    {
+        return self::make('news-timeline', ['news' => $newsId]);
     }
 
     public static function webStorySliderDataHome(): string
     {
         return self::base() . ':web-story-slider-data:home';
     }
+
     public static function webStorySliderDataSports(): string
     {
         return self::base() . ':web-story-slider-data:sports';
@@ -150,17 +189,17 @@ final class CacheKey
 
     public static function epaperQuizGrid(string $dateYmd): string
     {
-        return self::base() . ':epaper-quiz:grid:' . $dateYmd;
+        return self::make('epaper-quiz:grid', ['date' => $dateYmd]);
     }
 
     public static function epaperQuizPage(int $page, string $dateYmd): string
     {
-        return self::base() . ':epaper-quiz:page:' . $page . ':' . $dateYmd;
+        return self::make('epaper-quiz:page', ['page' => $page, 'date' => $dateYmd]);
     }
 
     public static function epaperQuizQuestion(int $questionId): string
     {
-        return self::base() . ':epaper-quiz:question:' . $questionId;
+        return self::make('epaper-quiz:question', ['id' => $questionId]);
     }
 
     public static function epaperPublications(): string
@@ -173,7 +212,6 @@ final class CacheKey
      */
     public static function epaperReaderShow(string $slug, string $dateYmd, string $revisionKey): string
     {
-        return self::base() . ':epaper-reader:show:' . $slug . ':' . $dateYmd . ':rev:' . $revisionKey;
+        return self::make('epaper-reader:show', ['slug' => $slug, 'date' => $dateYmd, 'rev' => $revisionKey]);
     }
-
 }

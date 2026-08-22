@@ -1,16 +1,28 @@
 {
   "name": "rakibmiah99/agamirsomoy-shared-cache",
-  "description": "Shared cache utilities for Laravel applications",
+  "description": "Shared Redis cache + dependency-based invalidation utilities for the Agamirsomoy news platform Laravel applications",
   "type": "library",
   "license": "MIT",
+  "version": "2.0.0",
   "require": {
     "php": "^8.2",
     "illuminate/cache": "^11.0|^12.0",
-    "illuminate/support": "^11.0|^12.0"
+    "illuminate/support": "^11.0|^12.0",
+    "illuminate/redis": "^11.0|^12.0"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^9.0|^10.0",
+    "pestphp/pest": "^3.0|^4.0",
+    "predis/predis": "^2.0"
   },
   "autoload": {
     "psr-4": {
       "Rakibmiah99\\AgamirsomoySharedCache\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Rakibmiah99\\AgamirsomoySharedCache\\Tests\\": "tests/"
     }
   },
   "extra": {
@@ -21,5 +33,10 @@
     }
   },
   "minimum-stability": "stable",
-  "prefer-stable": true
+  "prefer-stable": true,
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  }
 }
